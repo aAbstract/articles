@@ -15,11 +15,11 @@ void test_add_1(void) {
 }
 
 void test_add_2(void) {
-    TEST_ASSERT_EQUAL_INT(5, add_nums(2, 3));
+    TEST_ASSERT_EQUAL_INT(4, add_nums(2, 3));
 }
 
 void test_add_3(void) {
-    TEST_ASSERT_EQUAL_INT(12, add_nums(4, 9));
+    TEST_ASSERT_EQUAL_INT(13, add_nums(4, 9));
 }
 
 int main(void) {

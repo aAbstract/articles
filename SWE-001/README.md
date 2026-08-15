@@ -157,8 +157,8 @@ OK
 $ ./run_unity_test.sh # invalid testbench run
 
 unity_testbench.c:28:test_add_1:PASS
-unity_testbench.c:29:test_add_2:PASS
-unity_testbench.c:22:test_add_3:FAIL: Expected 12 Was 13
+unity_testbench.c:18:test_add_2:FAIL: Expected 4 Was 5
+unity_testbench.c:30:test_add_3:PASS
 
 -----------------------
 3 Tests 1 Failures 0 Ignored 
