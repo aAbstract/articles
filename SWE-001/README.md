@@ -175,10 +175,118 @@ A simple comparison between `C Assert` and `Unity`
 | Minimal output/reporting              | Provides detailed test results                       |
 | No test organization                  | Supports test setup, teardown, test runners and more |
 
-- TODO: C Test Hastle
-- TODO: PyTest framework
+Although a C unit-testing framework such as **Unity** provides a much better structure 
+than using `assert`, this method still introduces some practical overhead.  
+
+**Build System Overhead**
+- Configuring the build system for testing modules.
+- Compiling test executables and managing their dependencies and mocks.  
+
+**Tooling Overhead**  
+In many real-world projects, requirements and test cases already exist in JSON, XML, CSV, 
+PDF files or even on some remote file system, but integrating these external sources 
+with a C-based testing framework is often challenging due to lack of 
+builtin tooling for fetching, parsing and conversion.
+
+#### B. PyTest Framework
+**Python** addresses these limitations by providing builtin modules 
+and a very mature ecosystem for automations and data processing.  
+**PyTest** handles test discovery, execution, assertions, fixtures, parameterization, 
+and reporting, while Python libraries can easily read and parse common test-case 
+formats such as JSON, XML, CSV, PDF and remote file systems.
+```py
+# module under test
+# SWE-001/module.py
+def add_nums(a: int, b: int) -> int:
+    return a + b
+```
+
+```py
+# testbench
+# SWE-001/test_module.py
+# Note: PyTest uses test_* naming convention for files and functions discovery
+import module as m
+
+
+def test_add_nums():
+    assert m.add_nums(5, 6) == 11
+    assert m.add_nums(2, 3) == 5
+    assert m.add_nums(4, 9) == 13
+```
+
+```bash
+# install PyTest
+$ pip install pytest
+
+# verify installation
+$ pytest -h
+usage: pytest [options] [file_or_dir] [file_or_dir] [...]
+
+positional arguments:
+  file_or_dir
+
+# run testcase - valid run
+$ pytest test_module.py::test_add_nums
+platform linux -- Python 3.10.20, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/eslam/work/articles/SWE-001
+collected 1 item                                                                                                                                                                        
+
+test_module.py .   [100%]
+1 passed in 0.00s
+
+# run testcase - invalid run
+$ pytest test_module.py::test_add_nums
+platform linux -- Python 3.10.20, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/eslam/work/articles/SWE-001
+collected 1 item                                                                                                                                                                                              
+
+test_module.py F   [100%]
+
+FAILURES
+test_add_nums
+
+    def test_add_nums():
+        assert m.add_nums(5, 6) == 11
+        assert m.add_nums(2, 3) == 5
+>       assert m.add_nums(4, 9) == 10
+E       assert 13 == 10
+E        +  where 13 = <function add_nums at 0x717db8b8b880>(4, 9)
+E        +    where <function add_nums at 0x717db8b8b880> = m.add_nums
+
+test_module.py:7: AssertionError
+FAILED test_module.py::test_add_nums - assert 13 == 10
+1 failed in 0.03s
+```
+
+**PyTest VSCode Integration**  
+Integrating **PyTest** with **VSCode** is very easy (if python extensions are installed). 
+Press `CTRL + SHIFT + P` and look for `Python: Configure Tests`.  
+This will generate the following file:
+```json
+// .vscode/settings.json
+{
+    "python.testing.pytestArgs": [
+        "<tests_folder>"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}
+```
+Now, when you navigate to the `Testing Panel`, you will find all the test cases listed for easy execution, debugging, and navigation.
+<p align="center">
+  <img src="images/image_1.png" alt="Image 1">
+</p>
+
+VSCode also automatically collects test runs and results in `TEST RESULTS` terminal panel.
+<p align="center">
+  <img src="images/image_2.png" alt="Image 2">
+</p>
+
+### Python C FFI
 - TODO: Python C FFI
 - TODO: Python `ctypesgen`
+
+### DEBUGGING
 - TODO: Python PDB Debug
 - TODO: Linux SIGTRAP
 - TODO: PyTest + GDB setup
