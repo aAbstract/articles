@@ -282,12 +282,102 @@ VSCode also automatically collects test runs and results in `TEST RESULTS` termi
   <img src="images/image_2.png" alt="Image 2">
 </p>
 
-### Python C FFI
-- TODO: Python C FFI
-- TODO: Python `ctypesgen`
+### Python CFFI
+**CFFI (C Foreign Function Interface)** provides a convenient way to 
+call C libraries and functions directly from any language like Python for example.  
+Python provides a built-in C interoperability module called `ctypes`, 
+which allows developers to load compiled C libraries into Python runtime.
+```c
+// module under test
+// SWE-001/module.h
 
-### DEBUGGING
+#ifndef MODULE_H
+#define MODULE_H
+
+int add_nums(int a, int b);
+
+#endif
+```
+
+```c
+// module under test
+// SWE-001/module.c
+
+int add_nums(int a, int b) {
+    return a + b;
+}
+```
+
+```bash
+# building C library
+$ gcc -fPIC -Wall -O0 -g -shared module.c -o module.so
+```
+
+```py
+# loading module.so
+# SWE-001/python_cffi.py
+
+import ctypes
+module = ctypes.CDLL('./module.so')  # load library
+module.add_nums.argtypes = [ctypes.c_int, ctypes.c_int]  # define input arguments
+module.add_nums.restype = ctypes.c_int  # define return type
+print('module.add_nums(3, 4) =>', module.add_nums(3, 4))
+# module.add_nums(3, 4) => 7
+```
+
+Although `ctypes` makes it easy to call C functions from Python, 
+developers still need to manually define the C interface 
+by specifying each function’s argument types and return type. 
+For libraries with many functions and complex data structures, 
+maintaining these definitions can become time-consuming and error-prone.  
+`ctypesgen` utility helps solve this problem by automatically parsing C header files 
+and generating the corresponding Python ctypes interface, 
+significantly reducing the amount of manual binding code required.
+
+```bash
+# install ctypesgen
+$ pip install ctypesgen
+
+# verify installation
+$ ctypesgen -h
+Usage: ctypesgen [options] /path/to/header.h ...
+
+Options:
+  --version             show program version number and exit
+  -h, --help            show this help message and exit
+  -o FILE, --output=FILE
+
+# generating ctypes interface
+$ ctypesgen -l module.so ./module.h -o ./module_ffi.py
+INFO: Status: Writing to ./module_ffi.py.
+INFO: Status: Wrapping complete.
+```
+
+```py
+# section from auto generated file: module_ffi.py
+
+_libs["module.so"] = load_library("module.so")
+
+if _libs["module.so"].has("add_nums", "cdecl"):
+    add_nums = _libs["module.so"].get("add_nums", "cdecl")
+    add_nums.argtypes = [c_int, c_int]
+    add_nums.restype = c_int
+```
+
+```py
+# loading module.so
+# SWE-001/python_cffi.py
+
+from module_ffi import _libs
+module = _libs['module.so']
+module.add_nums(3, 8)
+print('module.add_nums(3, 8) =>', module.add_nums(3, 8))
+# module.add_nums(3, 4) => 11
+```
+
+### DEBUGGING - TODO
 - TODO: Python PDB Debug
+
 - TODO: Linux SIGTRAP
 - TODO: PyTest + GDB setup
 - TODO: PyTest + GDB + VSCode setup
